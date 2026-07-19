@@ -135,57 +135,87 @@ export default function EmbedManager({
   handleAction: HandleAction;
   deleteAction: DeleteAction;
 }) {
-  // null = Liste; sonst das bearbeitete Embed (oder ein leeres neues)
-  const [editing, setEditing] = useState<SavedEmbedRow | 'new' | null>(null);
+  // null = nichts ausgewählt; 'new' = neues Embed; sonst das gewählte Embed
+  const [selected, setSelected] = useState<SavedEmbedRow | 'new' | null>(null);
+  const selKey = selected === 'new' ? 'new' : (selected?.id ?? 'none');
 
-  if (editing) {
-    return (
-      <Editor
-        embed={editing === 'new' ? null : editing}
-        channels={channels}
-        handleAction={handleAction}
-        deleteAction={deleteAction}
-        onClose={() => setEditing(null)}
-      />
-    );
-  }
+  // Auswahl beim Neuladen aus dem URL-Anker wiederherstellen
+  useEffect(() => {
+    const h = window.location.hash.replace('#', '');
+    if (h === 'new') setSelected('new');
+    else if (h) {
+      const e = embeds.find((x) => x.id === h);
+      if (e) setSelected(e);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const select = (v: SavedEmbedRow | 'new' | null) => {
+    setSelected(v);
+    const h = v === 'new' ? 'new' : v ? v.id : '';
+    if (h) window.history.replaceState(null, '', `#${h}`);
+    else window.history.replaceState(null, '', window.location.pathname + window.location.search);
+  };
 
   return (
-    <div>
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-slate-400">
-          {embeds.length} gespeicherte{embeds.length === 1 ? 's' : ''} Embed{embeds.length === 1 ? '' : 's'}
-        </p>
-        <button type="button" onClick={() => setEditing('new')} className="btn-primary text-sm">
-          + Embed hinzufügen
-        </button>
-      </div>
+    <div className="flex flex-col gap-6 lg:flex-row">
+      {/* Seitenleiste am Rand: Liste + Creator */}
+      <aside className="lg:w-72 lg:shrink-0">
+        <div className="card p-3 lg:sticky lg:top-20">
+          <button
+            type="button"
+            onClick={() => select('new')}
+            className={`mb-3 w-full text-sm ${selected === 'new' ? 'btn-primary' : 'btn-ghost'}`}
+          >
+            + Embed hinzufügen
+          </button>
+          <div className="grid max-h-[62vh] gap-1 overflow-y-auto">
+            {embeds.length === 0 && (
+              <p className="px-2 py-3 text-xs text-slate-500">Noch keine Embeds gespeichert.</p>
+            )}
+            {embeds.map((e) => {
+              const active = selected !== 'new' && selected?.id === e.id;
+              return (
+                <button
+                  key={e.id}
+                  type="button"
+                  onClick={() => select(e)}
+                  className={`nav-link text-left ${active ? 'nav-link-active' : ''}`}
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm text-slate-100">{e.name}</span>
+                    <span className="block truncate text-xs text-slate-500">
+                      {channelName(channels, e.channelId)}
+                      {e.messageId ? ' · gesendet' : ''}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </aside>
 
-      {embeds.length === 0 ? (
-        <div className="card p-8 text-center text-slate-400">
-          Noch keine Embeds. Klick auf <b>„+ Embed hinzufügen"</b>, um dein erstes zu erstellen.
-        </div>
-      ) : (
-        <div className="grid gap-3">
-          {embeds.map((e) => (
-            <button
-              key={e.id}
-              type="button"
-              onClick={() => setEditing(e)}
-              className="card flex items-center justify-between gap-4 p-4 text-left transition hover:border-lumiya-400/40"
-            >
-              <div className="min-w-0">
-                <div className="truncate font-semibold text-white">{e.name}</div>
-                <div className="text-xs text-slate-400">
-                  {channelName(channels, e.channelId)}
-                  {e.messageId ? ' · bereits gesendet' : ''}
-                </div>
-              </div>
-              <span className="shrink-0 text-sm text-lumiya-300">Bearbeiten →</span>
-            </button>
-          ))}
-        </div>
-      )}
+      {/* Detail: Editor oder Platzhalter */}
+      <div className="min-w-0 flex-1">
+        {selected ? (
+          <Editor
+            key={selKey}
+            embed={selected === 'new' ? null : selected}
+            channels={channels}
+            handleAction={handleAction}
+            deleteAction={deleteAction}
+            onClose={() => select(null)}
+          />
+        ) : (
+          <div className="card grid place-items-center p-12 text-center text-slate-400">
+            <div>
+              <div className="mb-3 text-4xl">✨</div>
+              Wähle links ein Embed aus oder klicke auf{' '}
+              <b className="text-slate-200">„+ Embed hinzufügen"</b>.
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

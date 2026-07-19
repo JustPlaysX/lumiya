@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { checkGuildAccess } from '@/lib/guards';
 import { getGuildChannels } from '@/lib/discord';
-import { toDiscordEmbed, type EmbedConfig } from '@/lib/embed';
+import { toDiscordEmbeds, normalizeEmbeds } from '@/lib/embed';
 import { prisma } from '@/lib/prisma';
 
 export interface EmbedState {
@@ -57,9 +57,9 @@ export async function handleEmbed(
       return { ok: false, message: 'Ungültiger Kanal.' };
     }
 
-    const discordEmbed = toDiscordEmbed(embed.data as EmbedConfig);
-    if (!discordEmbed && !embed.content) {
-      return { ok: false, message: 'Embed ist leer – bitte Inhalt eingeben.' };
+    const discordEmbeds = toDiscordEmbeds(normalizeEmbeds(embed.data));
+    if (discordEmbeds.length === 0 && !embed.content) {
+      return { ok: false, message: 'Nachricht ist leer – bitte Inhalt eingeben.' };
     }
 
     const res = await fetch(`https://discord.com/api/v10/channels/${embed.channelId}/messages`, {
@@ -70,7 +70,7 @@ export async function handleEmbed(
       },
       body: JSON.stringify({
         content: embed.content || undefined,
-        embeds: discordEmbed ? [discordEmbed] : undefined,
+        embeds: discordEmbeds.length ? discordEmbeds : undefined,
       }),
     });
     if (!res.ok) {

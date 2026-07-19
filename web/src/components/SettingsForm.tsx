@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import type { GuildSettings } from '@prisma/client';
 import type { GuildChannel, GuildRole } from '@/lib/discord';
 import type { EmbedConfig } from '@/lib/embed';
@@ -180,6 +180,16 @@ export default function SettingsForm({
 }) {
   const [state, formAction, pending] = useActionState<SaveState, FormData>(action, { ok: false });
   const [tab, setTab] = useState<TabKey>('welcome');
+
+  // Aktiven Reiter beim Neuladen aus dem URL-Anker wiederherstellen
+  useEffect(() => {
+    const h = window.location.hash.replace('#', '');
+    if (TABS.some((t) => t.key === h)) setTab(h as TabKey);
+  }, []);
+  const selectTab = (k: TabKey) => {
+    setTab(k);
+    window.history.replaceState(null, '', `#${k}`);
+  };
   const [welcomeMode, setWelcomeMode] = useState<'text' | 'embed'>(
     settings.welcomeMode === 'embed' ? 'embed' : 'text',
   );
@@ -197,7 +207,7 @@ export default function SettingsForm({
             <button
               key={t.key}
               type="button"
-              onClick={() => setTab(t.key)}
+              onClick={() => selectTab(t.key)}
               className={`nav-link shrink-0 ${tab === t.key ? 'nav-link-active' : ''}`}
             >
               <span className="text-lg">{t.icon}</span>

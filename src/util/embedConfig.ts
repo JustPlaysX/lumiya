@@ -93,3 +93,15 @@ export function buildEmbed(config: EmbedConfig | null | undefined, ctx: Ctx = {}
 
   return hasContent ? embed : null;
 }
+
+/**
+ * Baut mehrere Embeds aus gespeicherten Daten (Array oder Einzel-Objekt).
+ * Gibt bis zu 10 nicht-leere Embeds zurück (Discord-Limit).
+ */
+export function buildEmbeds(data: unknown, ctx: Ctx = {}): EmbedBuilder[] {
+  const list = Array.isArray(data) ? data : data && typeof data === 'object' ? [data] : [];
+  return list
+    .map((c) => buildEmbed(c as EmbedConfig, ctx))
+    .filter((e): e is EmbedBuilder => e !== null)
+    .slice(0, 10);
+}

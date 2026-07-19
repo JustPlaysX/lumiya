@@ -1,7 +1,7 @@
 import { type GuildMember } from 'discord.js';
 import type { GuildSettings } from '@prisma/client';
 import { formatMessage } from '../../util/format.js';
-import { buildEmbed, type EmbedConfig } from '../../util/embedConfig.js';
+import { buildEmbeds } from '../../util/embedConfig.js';
 import { logger } from '../../logger.js';
 
 export async function handleMemberJoin(
@@ -24,9 +24,9 @@ export async function handleMemberJoin(
     if (channel?.isSendable()) {
       const ctx = { member, guild: member.guild };
       if (settings.welcomeMode === 'embed') {
-        const embed = buildEmbed(settings.welcomeEmbed as EmbedConfig | null, ctx);
-        if (embed) {
-          await channel.send({ content: member.toString(), embeds: [embed] }).catch(() => null);
+        const embeds = buildEmbeds(settings.welcomeEmbed, ctx);
+        if (embeds.length) {
+          await channel.send({ content: member.toString(), embeds }).catch(() => null);
         }
       } else {
         const text = formatMessage(settings.welcomeMessage, ctx);

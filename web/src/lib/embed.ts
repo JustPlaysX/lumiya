@@ -24,6 +24,21 @@ export const EMPTY_EMBED: EmbedConfig = {
   fields: [],
 };
 
+/** Normalisiert gespeicherte Daten (Einzel-Embed oder Array) zu einem Array. */
+export function normalizeEmbeds(data: unknown): EmbedConfig[] {
+  if (Array.isArray(data)) return data as EmbedConfig[];
+  if (data && typeof data === 'object') return [data as EmbedConfig];
+  return [];
+}
+
+/** Wandelt mehrere Embeds ins Discord-API-Format um (max. 10, leere entfernt). */
+export function toDiscordEmbeds(list: EmbedConfig[]): Record<string, unknown>[] {
+  return list
+    .map((e) => toDiscordEmbed(e))
+    .filter((x): x is Record<string, unknown> => x !== null)
+    .slice(0, 10);
+}
+
 /** Wandelt eine EmbedConfig ins Discord-API-Format um (oder null, wenn leer). */
 export function toDiscordEmbed(e: EmbedConfig): Record<string, unknown> | null {
   if (!embedHasContent(e)) return null;
