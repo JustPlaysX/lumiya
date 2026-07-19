@@ -1,0 +1,195 @@
+// Prisma-Schema für den Discord-Verwaltungsbot (PostgreSQL, Multi-Guild)
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Pro-Server-Einstellungen. Ein Datensatz je Discord-Guild.
+model GuildSettings {
+  guildId String @id // Discord Guild ID (Snowflake)
+
+  // Allgemein
+  language String @default("de")
+  prefix   String @default("!") // für optionale Prefix-Commands
+
+  // Moderation / Logging
+  modLogChannelId    String?
+  muteRoleId         String? // optional; sonst Discord-Timeout
+  autoModEnabled     Boolean @default(true)
+  antiSpamEnabled    Boolean @default(true)
+  antiSpamMaxMsgs    Int     @default(5) // Nachrichten ...
+  antiSpamPerSeconds Int     @default(5) // ... in X Sekunden
+  bannedWords        String[] @default([])
+
+  // Leveling
+  levelingEnabled     Boolean @default(true)
+  xpPerMessageMin     Int     @default(15)
+  xpPerMessageMax     Int     @default(25)
+  xpCooldownSeconds   Int     @default(60)
+  levelUpChannelId    String? // null = im selben Channel
+  levelUpMessage      String  @default("GG {user}, du bist jetzt Level {level}! 🎉")
+  levelingNoXpChannels String[] @default([])
+
+  // Welcome / Leave
+  welcomeChannelId String?
+  welcomeMessage   String  @default("Willkommen {user} auf **{server}**! 👋")
+  welcomeEnabled   Boolean @default(false)
+  leaveChannelId   String?
+  leaveMessage     String  @default("{username} hat den Server verlassen.")
+  leaveEnabled     Boolean @default(false)
+  autoRoleIds      String[] @default([])
+
+  // Honeypot / Anti-Raid
+  honeypotEnabled       Boolean @default(false)
+  honeypotChannelIds    String[] @default([])
+  honeypotAction        String  @default("ban") // ban | kick | timeout
+  antiRaidEnabled       Boolean @default(false)
+  antiRaidJoinThreshold Int     @default(10) // Joins ...
+  antiRaidJoinSeconds   Int     @default(10) // ... in X Sekunden
+  minAccountAgeMinutes  Int     @default(0)  // 0 = deaktiviert
+  raidLogChannelId      String?
+
+  // Tickets
+  ticketCategoryId    String?
+  ticketLogChannelId  String?
+  ticketSupportRoleId String?
+  ticketCounter       Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  levelRoles    LevelRole[]
+  reactionRoles ReactionRolePanel[]
+
+  @@map("guild_settings")
+}
+
+// XP/Level pro Nutzer und Guild.
+model UserLevel {
+  id        String   @id @default(cuid())
+  guildId   String
+  userId    String
+  xp        Int      @default(0)
+  level     Int      @default(0)
+  messages  Int      @default(0)
+  lastXpAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([guildId, userId])
+  @@index([guildId, xp])
+  @@map("user_levels")
+}
+
+// Rollen, die bei einem bestimmten Level vergeben werden.
+model LevelRole {
+  id      String @id @default(cuid())
+  guildId String
+  level   Int
+  roleId  String
+
+  settings GuildSettings @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
+
+  @@unique([guildId, level])
+  @@map("level_roles")
+}
+
+// Verwarnungen / Mod-Historie.
+model Warning {
+  id         String   @id @default(cuid())
+  guildId    String
+  userId     String
+  moderatorId String
+  reason     String   @default("Kein Grund angegeben")
+  createdAt  DateTime @default(now())
+
+  @@index([guildId, userId])
+  @@map("warnings")
+}
+
+// Reaction-/Button-Rollen-Panels.
+model ReactionRolePanel {
+  id        String   @id @default(cuid())
+  guildId   String
+  channelId String
+  messageId String   @unique
+  title     String   @default("Wähle deine Rollen")
+  type      String   @default("button") // button | reaction
+
+  settings GuildSettings @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
+  mappings ReactionRoleMapping[]
+
+  @@map("reaction_role_panels")
+}
+
+model ReactionRoleMapping {
+  id      String @id @default(cuid())
+  panelId String
+  roleId  String
+  emoji   String? // für Reaction-Typ
+  label   String? // für Button-Typ
+
+  panel ReactionRolePanel @relation(fields: [panelId], references: [id], onDelete: Cascade)
+
+  @@map("reaction_role_mappings")
+}
+
+// Offene/geschlossene Tickets.
+model Ticket {
+  id        String   @id @default(cuid())
+  guildId   String
+  channelId String   @unique
+  userId    String
+  number    Int
+  status    String   @default("open") // open | closed
+  createdAt DateTime @default(now())
+  closedAt  DateTime?
+
+  @@index([guildId, userId])
+  @@map("tickets")
+}
+
+// Reminder.
+model Reminder {
+  id        String   @id @default(cuid())
+  guildId   String
+  channelId String
+  userId    String
+  message   String
+  remindAt  DateTime
+  createdAt DateTime @default(now())
+
+  @@index([remindAt])
+  @@map("reminders")
+}
+
+// Giveaways.
+model Giveaway {
+  id          String   @id @default(cuid())
+  guildId     String
+  channelId   String
+  messageId   String   @unique
+  prize       String
+  winnerCount Int      @default(1)
+  hostId      String
+  endsAt      DateTime
+  ended       Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([endsAt, ended])
+  @@map("giveaways")
+}
+
+// Custom-Commands (Text-Antworten pro Guild).
+model CustomCommand {
+  id       String @id @default(cuid())
+  guildId  String
+  name     String
+  response String
+
+  @@unique([guildId, name])
+  @@map("custom_commands")
+}
