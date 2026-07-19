@@ -2,10 +2,11 @@
 # die Anfragen intern an das Web-Portal (Container "web", Port 3000) weiter.
 # Caddy holt & erneuert das Let's-Encrypt-Zertifikat vollautomatisch.
 
-{
-	# E-Mail für Let's-Encrypt-Benachrichtigungen (bei Bedarf ändern).
-	email justin.frese2002@gmail.com
-}
+# Optional: eigene E-Mail für Let's-Encrypt-Ablaufhinweise eintragen
+# (Zeile einkommentieren und Adresse anpassen). Ohne funktioniert es auch.
+# {
+# 	email deine@email.de
+# }
 
 lumiya.justplaysx.de {
 	reverse_proxy web:3000

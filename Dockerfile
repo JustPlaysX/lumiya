@@ -3,6 +3,9 @@ FROM node:22-alpine
 
 WORKDIR /app
 
+# OpenSSL für Prisma (Alpine bringt es nicht von Haus aus mit)
+RUN apk add --no-cache openssl
+
 # Abhängigkeiten (inkl. dev, da für Build & Prisma-CLI benötigt)
 COPY package*.json ./
 RUN npm ci
