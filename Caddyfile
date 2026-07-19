@@ -1,0 +1,12 @@
+# Caddy stellt die Domain automatisch mit HTTPS bereit und leitet
+# die Anfragen intern an das Web-Portal (Container "web", Port 3000) weiter.
+# Caddy holt & erneuert das Let's-Encrypt-Zertifikat vollautomatisch.
+
+{
+	# E-Mail für Let's-Encrypt-Benachrichtigungen (bei Bedarf ändern).
+	email justin.frese2002@gmail.com
+}
+
+lumiya.justplaysx.de {
+	reverse_proxy web:3000
+}
