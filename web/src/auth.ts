@@ -7,7 +7,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Discord({
       clientId: process.env.AUTH_DISCORD_ID,
       clientSecret: process.env.AUTH_DISCORD_SECRET,
-      authorization: { params: { scope: 'identify guilds' } },
+      // URL explizit setzen, sonst versucht Auth.js OIDC-Discovery über issuer (den Discord nicht hat)
+      authorization: {
+        url: 'https://discord.com/api/oauth2/authorize',
+        params: { scope: 'identify guilds' },
+      },
     }),
   ],
   callbacks: {

@@ -3,7 +3,9 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 RUN apk add --no-cache libc6-compat openssl
 COPY package*.json ./
-RUN npm ci
+# --ignore-scripts: verhindert, dass "postinstall: prisma generate" läuft,
+# bevor das Schema kopiert wurde. Prisma wird direkt danach generiert.
+RUN npm ci --ignore-scripts
 COPY prisma ./prisma
 RUN npx prisma generate
 COPY . .

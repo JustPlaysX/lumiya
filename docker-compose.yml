@@ -43,6 +43,8 @@ services:
       DISCORD_BOT_TOKEN: ${DISCORD_TOKEN}
       AUTH_SECRET: ${AUTH_SECRET}
       AUTH_URL: ${AUTH_URL:-https://lumiya.justplaysx.de}
+      # Nötig hinter Reverse-Proxy (Caddy), damit Auth.js X-Forwarded-Host vertraut
+      AUTH_TRUST_HOST: "true"
       NODE_ENV: production
     # Kein Host-Port nötig – Caddy erreicht "web" über das interne Netzwerk.
 
