@@ -7,27 +7,44 @@
 }
 
 body {
-  @apply bg-[#0b0a12] text-slate-200 antialiased;
+  @apply bg-ink-900 text-slate-200 antialiased;
   background-image:
-    radial-gradient(60rem 60rem at 80% -10%, rgba(124, 58, 237, 0.18), transparent 60%),
-    radial-gradient(50rem 50rem at 0% 20%, rgba(139, 92, 246, 0.12), transparent 55%);
+    radial-gradient(55rem 55rem at 85% -12%, rgba(34, 211, 238, 0.14), transparent 60%),
+    radial-gradient(45rem 45rem at -5% 10%, rgba(14, 165, 233, 0.12), transparent 55%);
   background-attachment: fixed;
 }
 
 @layer components {
   .glass {
-    @apply rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm;
+    @apply rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm;
+  }
+  .card {
+    @apply rounded-2xl border border-white/10 bg-ink-850/80 shadow-xl shadow-black/20;
   }
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-lumiya-600 px-5 py-2.5 font-semibold text-white transition hover:bg-lumiya-500 focus:outline-none focus:ring-2 focus:ring-lumiya-400/60;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-lumiya-400 to-lumiya-600 px-5 py-2.5 font-semibold text-ink-900 shadow-glow transition hover:from-lumiya-300 hover:to-lumiya-500 focus:outline-none focus:ring-2 focus:ring-lumiya-400/60 disabled:opacity-60;
   }
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 px-5 py-2.5 font-semibold text-slate-200 transition hover:border-white/30 hover:bg-white/5;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 px-5 py-2.5 font-semibold text-slate-200 transition hover:border-lumiya-400/40 hover:bg-white/5;
   }
   .input {
-    @apply w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-lumiya-400/70 focus:ring-2 focus:ring-lumiya-500/30;
+    @apply w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-lumiya-400/70 focus:ring-2 focus:ring-lumiya-500/25;
   }
   .label {
-    @apply mb-1 block text-sm font-medium text-slate-300;
+    @apply mb-1.5 block text-sm font-medium text-slate-300;
+  }
+  /* Schalter-Toggle */
+  .switch-track {
+    @apply block h-6 w-11 rounded-full bg-slate-600/70 transition-colors peer-checked:bg-lumiya-500 peer-focus-visible:ring-2 peer-focus-visible:ring-lumiya-400/50;
+  }
+  .switch-knob {
+    @apply pointer-events-none absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5;
+  }
+  /* Seitenleisten-Link */
+  .nav-link {
+    @apply flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-400 transition hover:bg-white/5 hover:text-slate-100;
+  }
+  .nav-link-active {
+    @apply bg-lumiya-500/15 text-lumiya-200 ring-1 ring-inset ring-lumiya-400/30;
   }
 }

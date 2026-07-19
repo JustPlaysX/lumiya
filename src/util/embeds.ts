@@ -1,6 +1,6 @@
 import { EmbedBuilder, Colors } from 'discord.js';
 
-export const brandColor = 0x5865f2; // Discord Blurple
+export const brandColor = 0x22d3ee; // Lumiya Türkis/Cyan
 
 export function successEmbed(description: string, title?: string): EmbedBuilder {
   return new EmbedBuilder()

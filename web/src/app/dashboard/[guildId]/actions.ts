@@ -34,6 +34,17 @@ function list(fd: FormData, key: string): string[] {
 function multi(fd: FormData, key: string): string[] {
   return fd.getAll(key).map((v) => String(v).trim()).filter(Boolean);
 }
+/** Liest ein als JSON serialisiertes Embed. undefined = nicht ändern. */
+function embedJson(fd: FormData, key: string): object | undefined {
+  const raw = str(fd, key);
+  if (!raw) return undefined;
+  try {
+    const parsed = JSON.parse(raw);
+    return typeof parsed === 'object' && parsed !== null ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 export async function saveSettings(
   guildId: string,
@@ -48,6 +59,8 @@ export async function saveSettings(
     welcomeEnabled: bool(formData, 'welcomeEnabled'),
     welcomeChannelId: nullableId(formData, 'welcomeChannelId'),
     welcomeMessage: str(formData, 'welcomeMessage') || 'Willkommen {user} auf **{server}**! 👋',
+    welcomeMode: ['text', 'embed'].includes(str(formData, 'welcomeMode')) ? str(formData, 'welcomeMode') : 'text',
+    welcomeEmbed: embedJson(formData, 'welcomeEmbedJson'),
     leaveEnabled: bool(formData, 'leaveEnabled'),
     leaveChannelId: nullableId(formData, 'leaveChannelId'),
     leaveMessage: str(formData, 'leaveMessage') || '{username} hat den Server verlassen.',

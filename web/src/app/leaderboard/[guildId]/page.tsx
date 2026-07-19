@@ -27,13 +27,13 @@ export default async function LeaderboardPage({
         <h1 className="mb-8 text-3xl font-bold text-white">🏆 Rangliste</h1>
 
         {top.length === 0 ? (
-          <div className="glass p-8 text-slate-400">Noch keine XP-Daten für diesen Server.</div>
+          <div className="card p-8 text-slate-400">Noch keine XP-Daten für diesen Server.</div>
         ) : (
           <ol className="space-y-2">
             {top.map((entry, i) => {
               const u = users.get(entry.userId);
               return (
-                <li key={entry.userId} className="glass flex items-center gap-4 p-3">
+                <li key={entry.userId} className="card flex items-center gap-4 p-3">
                   <span className="w-8 text-center text-lg font-bold text-slate-300">
                     {medals[i] ?? i + 1}
                   </span>

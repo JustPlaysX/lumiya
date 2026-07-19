@@ -1,7 +1,7 @@
-import { EmbedBuilder, type GuildMember } from 'discord.js';
+import { type GuildMember } from 'discord.js';
 import type { GuildSettings } from '@prisma/client';
 import { formatMessage } from '../../util/format.js';
-import { brandColor } from '../../util/embeds.js';
+import { buildEmbed, type EmbedConfig } from '../../util/embedConfig.js';
 import { logger } from '../../logger.js';
 
 export async function handleMemberJoin(
@@ -21,14 +21,17 @@ export async function handleMemberJoin(
   // Willkommensnachricht
   if (settings.welcomeEnabled && settings.welcomeChannelId) {
     const channel = member.guild.channels.cache.get(settings.welcomeChannelId);
-    if (channel?.isTextBased()) {
-      const text = formatMessage(settings.welcomeMessage, { member, guild: member.guild });
-      const embed = new EmbedBuilder()
-        .setColor(brandColor)
-        .setDescription(text)
-        .setThumbnail(member.user.displayAvatarURL())
-        .setFooter({ text: `Mitglied #${member.guild.memberCount}` });
-      await channel.send({ content: member.toString(), embeds: [embed] }).catch(() => null);
+    if (channel?.isSendable()) {
+      const ctx = { member, guild: member.guild };
+      if (settings.welcomeMode === 'embed') {
+        const embed = buildEmbed(settings.welcomeEmbed as EmbedConfig | null, ctx);
+        if (embed) {
+          await channel.send({ content: member.toString(), embeds: [embed] }).catch(() => null);
+        }
+      } else {
+        const text = formatMessage(settings.welcomeMessage, ctx);
+        await channel.send({ content: text }).catch(() => null);
+      }
     }
   }
 }

@@ -39,6 +39,8 @@ model GuildSettings {
   welcomeChannelId String?
   welcomeMessage   String  @default("Willkommen {user} auf **{server}**! 👋")
   welcomeEnabled   Boolean @default(false)
+  welcomeMode      String  @default("text") // text | embed
+  welcomeEmbed     Json? // Embed-Konfiguration (siehe EmbedConfig)
   leaveChannelId   String?
   leaveMessage     String  @default("{username} hat den Server verlassen.")
   leaveEnabled     Boolean @default(false)
@@ -182,6 +184,22 @@ model Giveaway {
 
   @@index([endsAt, ended])
   @@map("giveaways")
+}
+
+// Gespeicherte Embeds (Multi-Embed-Manager im Dashboard).
+model SavedEmbed {
+  id        String   @id @default(cuid())
+  guildId   String
+  name      String
+  channelId String?
+  content   String?
+  data      Json
+  messageId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([guildId])
+  @@map("saved_embeds")
 }
 
 // Custom-Commands (Text-Antworten pro Guild).
