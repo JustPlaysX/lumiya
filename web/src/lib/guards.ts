@@ -22,11 +22,8 @@ export async function checkGuildAccess(guildId: string): Promise<GuildAccess | n
   if (!session?.accessToken || !session.user?.id) return null;
   const userId = session.user.id;
 
-  const [guild, memberRoles] = await Promise.all([
-    getGuild(guildId),
-    getGuildMemberRoles(guildId, userId),
-  ]);
-  if (!guild || !memberRoles) return null; // Guild unbekannt oder kein Mitglied
+  const guild = await getGuild(guildId);
+  if (!guild) return null;
 
   const asAccess = (): GuildAccess => ({
     userId,
@@ -40,10 +37,14 @@ export async function checkGuildAccess(guildId: string): Promise<GuildAccess | n
     accessToken: session.accessToken!,
   });
 
-  // 1) Owner
+  // 1) Owner (braucht keine Mitglieds-Abfrage)
   if (guild.ownerId === userId) return asAccess();
 
-  // 2) Administrator / „Server verwalten" über Rollen
+  // 2) Mitglieds-Rollen laden (für Admin-/Konfig-Prüfung)
+  const memberRoles = await getGuildMemberRoles(guildId, userId);
+  if (!memberRoles) return null;
+
+  // Administrator / „Server verwalten" über Rollen
   let perms = 0n;
   const everyone = guild.roles.find((r) => r.id === guild.id);
   if (everyone) perms |= BigInt(everyone.permissions);
