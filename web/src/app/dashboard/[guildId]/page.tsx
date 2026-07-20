@@ -67,12 +67,9 @@ export default async function GuildSettingsPage({
               </Link>
             </div>
           </div>
-          <Link href={`/dashboard/${guildId}/embeds`} className="btn-ghost text-sm">
-            ✨ Embeds
-          </Link>
         </div>
 
-        <SettingsForm action={action} settings={settings} channels={channels} roles={roles} />
+        <SettingsForm action={action} settings={settings} channels={channels} roles={roles} guildId={guildId} />
       </main>
     </>
   );

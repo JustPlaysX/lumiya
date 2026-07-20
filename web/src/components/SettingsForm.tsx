@@ -1,10 +1,12 @@
 'use client';
 
 import { useActionState, useEffect, useState } from 'react';
+import Link from 'next/link';
 import type { GuildSettings } from '@prisma/client';
 import type { GuildChannel, GuildRole } from '@/lib/discord';
 import type { EmbedConfig } from '@/lib/embed';
 import EmbedBuilder from '@/components/EmbedBuilder';
+import RoleSelect from '@/components/RoleSelect';
 import type { SaveState } from '@/app/dashboard/[guildId]/actions';
 
 type Action = (prev: SaveState, fd: FormData) => Promise<SaveState>;
@@ -14,6 +16,7 @@ const TABS = [
   { key: 'leveling', label: 'Leveling', icon: '⭐' },
   { key: 'moderation', label: 'Moderation', icon: '🛡️' },
   { key: 'security', label: 'Sicherheit', icon: '🍯' },
+  { key: 'permissions', label: 'Rechte', icon: '🔑' },
 ] as const;
 type TabKey = (typeof TABS)[number]['key'];
 
@@ -172,12 +175,15 @@ export default function SettingsForm({
   settings,
   channels,
   roles,
+  guildId,
 }: {
   action: Action;
   settings: GuildSettings;
   channels: GuildChannel[];
   roles: GuildRole[];
+  guildId: string;
 }) {
+  const perms = (settings.permissions ?? {}) as Record<string, string[]>;
   const [state, formAction, pending] = useActionState<SaveState, FormData>(action, { ok: false });
   const [tab, setTab] = useState<TabKey>('welcome');
 
@@ -214,6 +220,11 @@ export default function SettingsForm({
               {t.label}
             </button>
           ))}
+          <div className="my-1 hidden h-px bg-white/10 lg:block" />
+          <Link href={`/dashboard/${guildId}/embeds`} className="nav-link shrink-0">
+            <span className="text-lg">✨</span>
+            Embeds
+          </Link>
         </nav>
       </aside>
 
@@ -257,7 +268,11 @@ export default function SettingsForm({
             <ChannelSelect name="leaveChannelId" label="Abschieds-Kanal" channels={textChannels} defaultValue={settings.leaveChannelId} />
             <TextArea name="leaveMessage" label="Abschiedstext" defaultValue={settings.leaveMessage} />
             <hr className="border-white/10" />
-            <CheckboxList name="autoRoleIds" label="Auto-Rollen bei Beitritt" hint="Diese Rollen bekommt jedes neue Mitglied automatisch." options={roleOptions} selected={settings.autoRoleIds} prefix="@" />
+            <div>
+              <label className="label">Auto-Rollen bei Beitritt</label>
+              <p className="mb-2 text-xs text-slate-500">Diese Rollen bekommt jedes neue Mitglied automatisch.</p>
+              <RoleSelect name="autoRoleIds" roles={roles} initial={settings.autoRoleIds} />
+            </div>
           </div>
         </div>
 
@@ -313,6 +328,34 @@ export default function SettingsForm({
               <Field name="minAccountAgeMinutes" label="Min. Account-Alter (Min.)" type="number" defaultValue={settings.minAccountAgeMinutes} />
             </div>
             <ChannelSelect name="raidLogChannelId" label="Sicherheits-Log-Kanal" channels={textChannels} defaultValue={settings.raidLogChannelId} />
+          </div>
+        </div>
+
+        {/* Rechte */}
+        <div className={tab === 'permissions' ? 'card p-6' : 'hidden'}>
+          <SectionTitle
+            icon="🔑"
+            title="Rechte"
+            desc="Lege fest, welche Ränge welche Bereiche nutzen dürfen. Discord-eigene Rechte (z.B. Server verwalten) und Administratoren gelten zusätzlich immer."
+          />
+          <div className="grid gap-6">
+            <div>
+              <label className="label">🛡️ Moderation</label>
+              <p className="mb-2 text-xs text-slate-500">Dürfen /ban, /kick, /timeout, /warn, /clear nutzen.</p>
+              <RoleSelect name="perm_moderation" roles={roles} initial={perms.moderation ?? []} />
+            </div>
+            <div>
+              <label className="label">⚙️ Konfiguration</label>
+              <p className="mb-2 text-xs text-slate-500">
+                Dürfen Bot-Einstellungen, AutoMod, Honeypot, Tickets &amp; Rollen konfigurieren — und das <b>Web-Dashboard bearbeiten</b>.
+              </p>
+              <RoleSelect name="perm_config" roles={roles} initial={perms.config ?? []} />
+            </div>
+            <div>
+              <label className="label">✨ Embeds</label>
+              <p className="mb-2 text-xs text-slate-500">Dürfen den Embed-Manager nutzen und Embeds senden.</p>
+              <RoleSelect name="perm_embeds" roles={roles} initial={perms.embeds ?? []} />
+            </div>
           </div>
         </div>
 

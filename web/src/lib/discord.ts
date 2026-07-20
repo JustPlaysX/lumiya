@@ -119,6 +119,19 @@ export async function getGuildChannels(guildId: string): Promise<GuildChannel[]>
   return channels.sort((a, b) => a.position - b.position);
 }
 
+/** Lädt die Rollen-IDs eines Mitglieds (Bot-Token). null, wenn nicht Mitglied. */
+export async function getGuildMemberRoles(guildId: string, userId: string): Promise<string[] | null> {
+  const token = process.env.DISCORD_BOT_TOKEN;
+  if (!token) return null;
+  const res = await fetch(`${API}/guilds/${guildId}/members/${userId}`, {
+    headers: { Authorization: `Bot ${token}` },
+    next: { revalidate: 15 },
+  });
+  if (!res.ok) return null;
+  const member = (await res.json()) as { roles?: string[] };
+  return member.roles ?? [];
+}
+
 export interface GuildRole {
   id: string;
   name: string;

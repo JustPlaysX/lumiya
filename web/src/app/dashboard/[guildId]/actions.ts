@@ -90,6 +90,12 @@ export async function saveSettings(
     antiRaidJoinSeconds: int(formData, 'antiRaidJoinSeconds', 10, 1, 120),
     minAccountAgeMinutes: int(formData, 'minAccountAgeMinutes', 0, 0, 100000),
     raidLogChannelId: nullableId(formData, 'raidLogChannelId'),
+    // Rechtesystem
+    permissions: {
+      moderation: multi(formData, 'perm_moderation'),
+      config: multi(formData, 'perm_config'),
+      embeds: multi(formData, 'perm_embeds'),
+    },
   };
 
   // Validierung: min <= max bei XP

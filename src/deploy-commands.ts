@@ -3,6 +3,7 @@ import { BotClient } from './client.js';
 import { config } from './config.js';
 import { loadCommands } from './handlers/commandHandler.js';
 import { logger } from './logger.js';
+import { COMMAND_PERMISSIONS } from './util/permissions.js';
 
 /**
  * Registriert alle Slash-Commands bei Discord.
@@ -12,7 +13,14 @@ import { logger } from './logger.js';
 async function deploy(): Promise<void> {
   const client = new BotClient();
   const commands = await loadCommands(client);
-  const body = commands.map((c) => c.data.toJSON());
+  const body = commands.map((c) => {
+    const json = c.data.toJSON();
+    // Privilegierte Befehle sichtbar machen – der Bot setzt das Rechtesystem selbst durch
+    if (COMMAND_PERMISSIONS[json.name]) {
+      json.default_member_permissions = null;
+    }
+    return json;
+  });
 
   const rest = new REST().setToken(config.token);
 

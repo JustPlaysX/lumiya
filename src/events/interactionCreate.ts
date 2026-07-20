@@ -2,6 +2,8 @@ import { Collection, MessageFlags } from 'discord.js';
 import { defineEvent } from '../types/event.js';
 import { logger } from '../logger.js';
 import { errorEmbed } from '../util/embeds.js';
+import { COMMAND_PERMISSIONS, memberHasPermission } from '../util/permissions.js';
+import { getGuildSettings } from '../database/guildSettings.js';
 import {
   TICKET_OPEN_ID,
   TICKET_CLOSE_ID,
@@ -49,6 +51,19 @@ export default defineEvent({
         flags: MessageFlags.Ephemeral,
       });
       return;
+    }
+
+    // Rechte-Prüfung (Rechtesystem)
+    const permKey = COMMAND_PERMISSIONS[interaction.commandName];
+    if (permKey && interaction.inCachedGuild()) {
+      const settings = await getGuildSettings(interaction.guildId);
+      if (!memberHasPermission(interaction.member, interaction.guild, permKey, settings)) {
+        await interaction.reply({
+          embeds: [errorEmbed('Dir fehlt die Berechtigung, diesen Befehl zu nutzen.')],
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
     }
 
     // Cooldown-Prüfung

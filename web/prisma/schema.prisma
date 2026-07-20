@@ -17,6 +17,9 @@ model GuildSettings {
   language String @default("de")
   prefix   String @default("!") // für optionale Prefix-Commands
 
+  // Rechtesystem: { moderation: [roleIds], config: [...], embeds: [...] }
+  permissions Json?
+
   // Moderation / Logging
   modLogChannelId    String?
   muteRoleId         String? // optional; sonst Discord-Timeout
